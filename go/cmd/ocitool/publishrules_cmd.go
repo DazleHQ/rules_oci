@@ -25,10 +25,12 @@ func PublishRulesCmd(c *cli.Context) error {
 		MediaType: ocispec.MediaTypeImageManifest,
 		Config:    desc,
 		Annotations: map[string]string{
-			"org.opencontainers.image.source": "github.com/DataDog/rules_oci",
+			"org.opencontainers.image.source": "github.com/tguidoux/rules_oci",
 			"target":                          "prod",
 		},
 	}
+
+	// fmt.Printf("Pushing manifest: %v\n", manifest)
 
 	_, err = resolver.MarshalAndPushContent(c.Context, c.String("ref"), manifest, manifest.MediaType)
 	if err != nil {

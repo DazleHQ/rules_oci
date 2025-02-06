@@ -224,14 +224,14 @@ func (resolver Resolver) MarshalAndPushContent(ctx context.Context, ref string, 
 	if err != nil {
 		return desc, fmt.Errorf("unable to close writer: %w", err)
 	}
-	log.Debug("contents pushed")
+	log.Info("contents pushed")
 
 	err = w.Commit(ctx, desc.Size, desc.Digest)
 	if err != nil {
 		return desc, fmt.Errorf("unable to commit: %w", err)
 	}
 
-	log.Debug("contents committed")
+	log.Info("contents committed")
 
 	return desc, nil
 }

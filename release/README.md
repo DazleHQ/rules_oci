@@ -1,11 +1,25 @@
 # Releasing `rules_oci`
 
+## Setup login to ghcr.io
 ```
-# Build the release package tar
-bzl build //release:release
+export GITHUB_TOKEN=XXX
+export DOCKER_CONFIG=$(pwd)
+echo "{\"credHelpers\":{\"ghcr.io\":\"ghcr\"}}" > $DOCKER_CONFIG/config.json
+echo -e "#\!/usr/bin/env bash\necho '{\"ServerURL\":\"ghcr.io\",\"Username\":\"Bearer\",\"Secret\":\"XXX\"}'" > docker-credential-ghcr
+chmod +x docker-credential-ghcr
+export PATH=$(pwd):$PATH
+```
 
-# Push the package to registry
-bzl run //go/cmd/ocitool -- push-blob --ref "ghcr.io/datadog/rules_oci/rules:latest" --file $(pwd)/bazel-bin/release/release.tar.gz
+
+## Build the release package tar
+bazel build //release:release
+
+## Push the package to registry
+
+```
+bazel run //go/cmd/ocitool -- push-blob --ref "ghcr.io/tguidoux/rules_oci/rules:latest" --file $(pwd)/bazel-bin/release/release.tar.gz
+
+bazel run //go/cmd/ocitool -- push-rules --ref "ghcr.io/tguidoux/rules_oci/rules:latest" --file $(pwd)/bazel-bin/release/release.tar.gz
 ```
 
 ## Updating Licenses and Headers
