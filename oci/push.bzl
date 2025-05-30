@@ -1,5 +1,5 @@
-load("@com_github_datadog_rules_oci//oci:providers.bzl", "OCIDescriptor", "OCILayout", "OCIReferenceInfo")
 load("@com_github_datadog_rules_oci//oci:debug_flag.bzl", "DebugInfo")
+load("@com_github_datadog_rules_oci//oci:providers.bzl", "OCIDescriptor", "OCILayout", "OCIReferenceInfo")
 
 def _oci_push_impl(ctx):
     toolchain = ctx.toolchains["@com_github_datadog_rules_oci//oci:toolchain"]
@@ -48,6 +48,7 @@ def _oci_push_impl(ctx):
         --desc {desc} \\
         --target-ref {ref} \\
         --parent-tag \"{tag}\" \\
+        --mount {mount} \\
         {headers} \\
         {xheaders} \\
 
@@ -60,11 +61,12 @@ def _oci_push_impl(ctx):
             desc = ctx.attr.manifest[OCIDescriptor].descriptor_file.short_path,
             ref = ref,
             tag = tag,
-            debug = str(ctx.attr._debug[DebugInfo].debug),
+            debug = str(ctx.attr.debug),
             headers = headers,
             xheaders = xheaders,
             post_scripts = "\n".join(["./" + hook.short_path for hook in toolchain.post_push_hooks]),
             digest = digest_file.short_path,
+            mount = "true" if ctx.attr.mount else "false",
         ),
         output = ctx.outputs.executable,
         is_executable = True,
@@ -124,9 +126,18 @@ oci_push = rule(
                 (optional) A list of key/values to to be sent to the registry as headers with an X-Meta- prefix.
             """,
         ),
-        "_debug": attr.label(
-            default = "//oci:debug",
-            providers = [DebugInfo],
+        "mount": attr.bool(
+            doc = """
+            (optional) Whether to mount existing image or mount all of layers. If not specified, the default is
+            False.
+            """,
+            default = False,
+        ),
+        "debug": attr.bool(
+            doc = """
+                (optional) If true, the tool will print debug information.
+            """,
+            default = False,
         ),
     },
     provides = [

@@ -239,7 +239,7 @@ func (resolver Resolver) MarshalAndPushContent(ctx context.Context, ref string, 
 // CopyContent copies a descriptor from a provider to an ingestor interfaces
 // provider by "containerd/content". Useful when you want to copy between
 // layouts or when pulling an image via oras.ProviderWrapper
-func CopyContent(ctx context.Context, from content.Provider, to content.Ingester, desc ocispec.Descriptor) error {
+func CopyContent(ctx context.Context, from content.Provider, to content.Ingester, desc ocispec.Descriptor, mount bool) error {
 	logCtx := log.WithField("digest", desc.Digest).WithField("desc", desc)
 
 	// If we're talking to an OCI registry we can take some shortcuts by
@@ -264,19 +264,20 @@ func CopyContent(ctx context.Context, from content.Provider, to content.Ingester
 		// before attempting the Mount call, or the Mount call should do this.
 		//
 		// TODO: should also allow ocispec.AnnotationRefName
-		if ref, ok := desc.Annotations[ocispec.AnnotationBaseImageName]; ok {
-			repo, err := RefToPath(ref)
-			if err != nil {
-				return fmt.Errorf("failed to mount blob: %w", err)
-			}
+		// ref, ok := desc.Annotations[ocispec.AnnotationBaseImageName]
+		// if mount && ok {
+		// 	repo, err := RefToPath(ref)
+		// 	if err != nil {
+		// 		return fmt.Errorf("failed to mount blob: %w", err)
+		// 	}
 
-			err = reg.Mount(ctx, repo, desc.Digest)
-			if err == nil {
-				logCtx.Debugf("skipped copy, mounted blob from %q", repo)
-				return nil
-			}
-			logCtx.WithError(err).Debug("couldn't mount blob")
-		}
+		// 	err = reg.Mount(ctx, repo, desc.Digest)
+		// 	if err == nil {
+		// 		logCtx.Debugf("skipped copy, mounted blob from %q", repo)
+		// 		return nil
+		// 	}
+		// 	logCtx.WithError(err).Debug("couldn't mount blob")
+		// }
 	}
 
 	reader, err := from.ReaderAt(ctx, desc)

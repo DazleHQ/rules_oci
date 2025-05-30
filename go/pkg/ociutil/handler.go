@@ -12,9 +12,9 @@ import (
 
 // CopyContentHandler copies the parent descriptor from the provider to the
 // ingestor
-func CopyContentHandler(handler images.HandlerFunc, from content.Provider, to content.Ingester) images.HandlerFunc {
+func CopyContentHandler(handler images.HandlerFunc, from content.Provider, to content.Ingester, mount bool) images.HandlerFunc {
 	return func(ctx context.Context, desc ocispec.Descriptor) ([]ocispec.Descriptor, error) {
-		err := CopyContent(ctx, from, to, desc)
+		err := CopyContent(ctx, from, to, desc, mount)
 		if err != nil {
 			return nil, err
 		}
@@ -25,14 +25,14 @@ func CopyContentHandler(handler images.HandlerFunc, from content.Provider, to co
 
 // CopyChildrenFromHandler performs a recursive depth-first copy of the parent descriptors children
 // (as returned by calling handler on the parent) from the provider to the ingester
-func CopyChildrenFromHandler(ctx context.Context, handler images.HandlerFunc, from content.Provider, to content.Ingester, parent ocispec.Descriptor) error {
+func CopyChildrenFromHandler(ctx context.Context, handler images.HandlerFunc, from content.Provider, to content.Ingester, parent ocispec.Descriptor, mount bool) error {
 	children, err := handler.Handle(ctx, parent)
 	if err != nil {
 		return err
 	}
 
 	for _, child := range children {
-		err = copyContentFromHandler(ctx, handler, from, to, child)
+		err = copyContentFromHandler(ctx, handler, from, to, child, mount)
 		if err != nil {
 			return err
 		}
@@ -40,13 +40,13 @@ func CopyChildrenFromHandler(ctx context.Context, handler images.HandlerFunc, fr
 	return nil
 }
 
-func copyContentFromHandler(ctx context.Context, handler images.HandlerFunc, from content.Provider, to content.Ingester, desc ocispec.Descriptor) error {
-	err := CopyChildrenFromHandler(ctx, handler, from, to, desc)
+func copyContentFromHandler(ctx context.Context, handler images.HandlerFunc, from content.Provider, to content.Ingester, desc ocispec.Descriptor, mount bool) error {
+	err := CopyChildrenFromHandler(ctx, handler, from, to, desc, mount)
 	if err != nil {
 		return err
 	}
 
-	err = CopyContent(ctx, from, to, desc)
+	err = CopyContent(ctx, from, to, desc, mount)
 	if err != nil {
 		return err
 	}

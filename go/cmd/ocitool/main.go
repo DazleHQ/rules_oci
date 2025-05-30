@@ -145,6 +145,11 @@ var app = &cli.App{
 					Name:  "x_meta_headers",
 					Value: &flagutil.KeyValueFlag{},
 				},
+				&cli.BoolFlag{
+					Name:     "mount",
+					Required: false,
+					Value:    false,
+				},
 			},
 		},
 		{

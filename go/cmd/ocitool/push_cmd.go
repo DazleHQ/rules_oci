@@ -18,6 +18,7 @@ func PushCmd(c *cli.Context) error {
 	}
 
 	allProviders := ociutil.MultiProvider(localProviders...)
+	mount := c.Bool("mount")
 
 	baseDesc, err := ociutil.ReadDescriptorFromFile(c.String("desc"))
 	if err != nil {
@@ -49,7 +50,7 @@ func PushCmd(c *cli.Context) error {
 
 	// take care of copying any children first
 	imagesHandler := images.ChildrenHandler(allProviders)
-	err = ociutil.CopyChildrenFromHandler(c.Context, imagesHandler, allProviders, regIng, baseDesc)
+	err = ociutil.CopyChildrenFromHandler(c.Context, imagesHandler, allProviders, regIng, baseDesc, mount)
 	if err != nil {
 		return fmt.Errorf("failed to push child content to registry: %w", err)
 	}
@@ -70,7 +71,7 @@ func PushCmd(c *cli.Context) error {
 	}
 
 	// push the parent last (in case of image index)
-	err = ociutil.CopyContent(c.Context, allProviders, regIng, baseDesc)
+	err = ociutil.CopyContent(c.Context, allProviders, regIng, baseDesc, mount)
 	if err != nil {
 		return fmt.Errorf("failed to push parent content to registry: %w", err)
 	}
